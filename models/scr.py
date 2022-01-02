@@ -31,13 +31,7 @@ class SCR(ContinualModel):
         self.loss = SupConLoss(temperature=self.args.temper)
         self.net = SupConResNet()
         self.dataset = get_dataset(args)
-
-        self.color_jitter = transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1)
-        self.transform = transforms.Compose([
-                self.transform,
-                transforms.RandomApply([self.color_jitter], p = 0.7),
-                transforms.RandomGrayscale(p=0.2)
-            ])      
+ 
         self.class_means = None
 
     def observe(self, inputs, inputs_aug, labels, not_aug_inputs):
@@ -54,7 +48,9 @@ class SCR(ContinualModel):
         if not self.buffer.is_empty():
             buf_inputs, buf_labels = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
+
             inputs = torch.cat((inputs, buf_inputs))
+            inputs_aug = torch.cat((inputs_aug, buf_inputs))
             labels = torch.cat((labels, buf_labels))
 
         features = torch.cat([self.net.forward(inputs).unsqueeze(1), self.net.forward(inputs_aug).unsqueeze(1)], dim=1)
