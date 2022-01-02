@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from datasets.seq_tinyimagenet import base_path
 from PIL import Image
 from datasets.utils.validation import get_train_val
-from datasets.utils.continual_dataset import ContinualDataset, store_masked_loaders, store_masked_loaders_val
+from datasets.utils.continual_dataset import ContinualDataset, store_masked_loaders
 from datasets.utils.continual_dataset import get_previous_train_loader
 from typing import Tuple
 from datasets.transforms.denormalization import DeNormalize
@@ -93,12 +93,8 @@ class SequentialCIFAR100(ContinualDataset):
         test_dataset = CIFAR100(base_path() + 'CIFAR100',train=False,
                                                     download=True, transform=test_transform)
         
-        if (self.args.validation):
-            train, val, test = store_masked_loaders_val(train_dataset, val_dataset, test_dataset, self)
-            return train, val, test
-        else:
-            train, test = store_masked_loaders(train_dataset, test_dataset, self)
-            return train, test
+        train, test = store_masked_loaders(train_dataset, test_dataset, self)
+        return train, test
 
     def not_aug_dataloader(self, batch_size):
         transform = transforms.Compose([transforms.ToTensor(), self.get_normalization_transform()])
