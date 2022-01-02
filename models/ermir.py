@@ -67,12 +67,12 @@ def get_future_step_parameters(this_net, grad_vector, grad_dims, lr=1):
                 param.data=param.data - lr*param.grad.data
     return new_net
 
-class ErMir(ContinualModel):
-    NAME = 'er-mir'
+class Ermir(ContinualModel):
+    NAME = 'Ermir'
     COMPATIBILITY = ['class-il', 'domain-il', 'task-il', 'general-continual']
 
     def __init__(self, backbone, loss, args, transform):
-        super(ErMir, self).__init__(backbone, loss, args, transform)
+        super(Ermir, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
 
     def observe(self, inputs, labels, not_aug_inputs):
