@@ -6,6 +6,7 @@ from utils.loss_scr import SupConLoss
 from backbone.ResNet18 import SupConResNet
 import torchvision.transforms as transforms
 from datasets import get_dataset
+from torch.optim import SGD
 
 
 def get_parser() -> ArgumentParser:
@@ -31,6 +32,8 @@ class SCR(ContinualModel):
         self.loss = SupConLoss(temperature=self.args.temper)
         self.net = SupConResNet()
         self.dataset = get_dataset(args)
+
+        self.opt = SGD(self.net.parameters(), lr=self.args.lr)
  
         self.class_means = None
         self.current_task = 0
