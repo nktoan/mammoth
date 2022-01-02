@@ -33,7 +33,7 @@ class SCR(ContinualModel):
                 self.transform,
                 transforms.RandomApply(transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1), p = 0.7),
                 transforms.RandomGrayscale(p=0.2)
-            ])
+            ])      
         self.class_means = None
 
     def observe(self, inputs, labels, not_aug_inputs):

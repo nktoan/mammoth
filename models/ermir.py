@@ -9,6 +9,7 @@ from utils.args import *
 from models.utils.continual_model import ContinualModel
 import copy
 
+import torch.nn.functional as F
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -73,7 +74,7 @@ class Ermir(ContinualModel):
 
     def __init__(self, backbone, loss, args, transform):
         super(Ermir, self).__init__(backbone, loss, args, transform)
-        self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.buffer = Buffer(self.args.buffer_size, self.device)   
 
     def observe(self, inputs, labels, not_aug_inputs):
 
@@ -95,8 +96,8 @@ class Ermir(ContinualModel):
                 logits_track_pre = self.net(buf_inputs)
                 logits_track_post = model_temp(buf_inputs)
 
-                pre_loss = self.loss(logits_track_pre, buf_labels)
-                post_loss = self.loss(logits_track_post, buf_labels)
+                pre_loss = F.cross_entropy(input = logits_track_pre, target = buf_labels, reduction="none")
+                post_loss = F.cross_entropy(input = logits_track_post, target = buf_labels, reduction="none")
 
                 scores = post_loss - pre_loss
 
