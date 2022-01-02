@@ -8,6 +8,9 @@ from datasets.seq_mnist import SequentialMNIST
 from datasets.seq_cifar10 import SequentialCIFAR10
 from datasets.seq_cifar100 import SequentialCIFAR100
 from datasets.seq_cifar100_20 import SequentialCIFAR100_20
+from datasets.seq_cifar100_20_pair import SequentialCIFAR100_20P
+from datasets.seq_cifar100_pair import SequentialCIFAR100P
+from datasets.seq_cifar10_pair import SequentialCIFAR10P
 from datasets.rot_mnist import RotatedMNIST
 from datasets.seq_tinyimagenet import SequentialTinyImagenet
 from datasets.mnist_360 import MNIST360
@@ -17,6 +20,9 @@ from argparse import Namespace
 NAMES = {
     PermutedMNIST.NAME: PermutedMNIST,
     SequentialMNIST.NAME: SequentialMNIST,
+    SequentialCIFAR10P.NAME : SequentialCIFAR10P,
+    SequentialCIFAR100P.NAME : SequentialCIFAR100P,
+    SequentialCIFAR100_20P.NAME : SequentialCIFAR100_20P,
     SequentialCIFAR10.NAME: SequentialCIFAR10,
     SequentialCIFAR100.NAME : SequentialCIFAR100,
     SequentialCIFAR100_20.NAME : SequentialCIFAR100_20,

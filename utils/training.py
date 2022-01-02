@@ -93,7 +93,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     for t in range(dataset.N_TASKS):
         model.net.train()
         _, _ = dataset_copy.get_data_loaders()
-    if model.NAME != 'icarl' and model.NAME != 'pnn':
+    if model.NAME != 'icarl' and model.NAME != 'pnn' and model.NAME != 'scr':
         random_results_class, random_results_task = evaluate(model, dataset_copy)
 
     print(file=sys.stderr)
@@ -117,11 +117,18 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                     logits = logits.to(model.device)
                     loss = model.observe(inputs, labels, not_aug_inputs, logits)
                 else:
-                    inputs, labels, not_aug_inputs = data
-                    inputs, labels = inputs.to(model.device), labels.to(
-                        model.device)
-                    not_aug_inputs = not_aug_inputs.to(model.device)
-                    loss = model.observe(inputs, labels, not_aug_inputs)
+                    if (model.NAME == 'scr'):
+                        inputs, aug_inputs, labels, not_aug_inputs = data
+                        inputs, aug_inputs, labels = inputs.to(model.device), aug_inputs.to(model.device), labels.to(
+                            model.device)
+                        not_aug_inputs = not_aug_inputs.to(model.device)
+                        loss = model.observe(inputs, aug_inputs, labels, not_aug_inputs)
+                    else:
+                        inputs, labels, not_aug_inputs = data
+                        inputs, labels = inputs.to(model.device), labels.to(
+                            model.device)
+                        not_aug_inputs = not_aug_inputs.to(model.device)
+                        loss = model.observe(inputs, labels, not_aug_inputs)
 
                 progress_bar(i, len(train_loader), epoch, t, loss)
 
@@ -153,7 +160,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     if args.csv_log:
         csv_logger.add_bwt(results, results_mask_classes)
         csv_logger.add_forgetting(results, results_mask_classes)
-        if model.NAME != 'icarl' and model.NAME != 'pnn':
+        if model.NAME != 'icarl' and model.NAME != 'pnn' and model.NAME != 'scr':
             csv_logger.add_fwt(results, random_results_class,
                                results_mask_classes, random_results_task)
 

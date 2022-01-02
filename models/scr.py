@@ -5,6 +5,7 @@ from models.utils.continual_model import ContinualModel
 from utils.loss_scr import SupConLoss
 from backbone.ResNet18 import SupConResNet
 import torchvision.transforms as transforms
+from datasets import get_dataset
 
 
 def get_parser() -> ArgumentParser:
@@ -29,14 +30,17 @@ class SCR(ContinualModel):
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.loss = SupConLoss(temperature=self.args.temper)
         self.net = SupConResNet()
+        self.dataset = get_dataset(args)
+
+        self.color_jitter = transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1)
         self.transform = transforms.Compose([
                 self.transform,
-                transforms.RandomApply(transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1), p = 0.7),
+                transforms.RandomApply([self.color_jitter], p = 0.7),
                 transforms.RandomGrayscale(p=0.2)
             ])      
         self.class_means = None
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, inputs_aug, labels, not_aug_inputs):
         if not hasattr(self, 'classes_so_far'):
             self.register_buffer('classes_so_far', labels.unique().to('cpu'))
         else:
@@ -53,7 +57,6 @@ class SCR(ContinualModel):
             inputs = torch.cat((inputs, buf_inputs))
             labels = torch.cat((labels, buf_labels))
 
-        inputs_aug = self.transform(inputs)
         features = torch.cat([self.net.forward(inputs).unsqueeze(1), self.net.forward(inputs_aug).unsqueeze(1)], dim=1)
 
         loss = self.loss(features, labels)
@@ -72,7 +75,7 @@ class SCR(ContinualModel):
         # This function caches class means
         transform = self.dataset.get_normalization_transform()
         class_means = []
-        examples, labels, _ = self.buffer.get_all_data(transform)
+        examples, labels = self.buffer.get_all_data(transform)
         for _y in self.classes_so_far:
             x_buf = torch.stack(
                 [examples[i]
