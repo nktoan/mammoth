@@ -65,13 +65,13 @@ class SequentialCIFAR100_20(ContinualDataset):
     N_CLASSES_PER_TASK = 5
     N_TASKS = 20
 
-    color_jitter = transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1)
+    # color_jitter = transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1)
     TRANSFORM = transforms.Compose(
             [
                 transforms.RandomCrop(32, padding=4),
-                transforms.RandomApply([color_jitter], p = 0.7),
+                # transforms.RandomApply([color_jitter], p = 0.7),
                 transforms.RandomHorizontalFlip(p = 0.5),
-                transforms.RandomGrayscale(p = 0.25),
+                # transforms.RandomGrayscale(p = 0.25),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5071, 0.4865, 0.4409),(0.2673, 0.2564, 0.2761))
             ])

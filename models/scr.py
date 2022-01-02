@@ -33,6 +33,7 @@ class SCR(ContinualModel):
         self.dataset = get_dataset(args)
  
         self.class_means = None
+        self.current_task = 0
 
     def observe(self, inputs, inputs_aug, labels, not_aug_inputs):
         if not hasattr(self, 'classes_so_far'):
