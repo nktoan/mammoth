@@ -36,16 +36,15 @@ class MyCIFAR100(CIFAR100):
         not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
-            img2 = self.transform(img)
             img = self.transform(img)
 
         if self.target_transform is not None:
             target = self.target_transform(target)
 
         if hasattr(self, 'logits'):
-            return img, img2, target, not_aug_img, self.logits[index]
+            return img, target, not_aug_img, self.logits[index]
 
-        return img, img2, target, not_aug_img
+        return img, target, not_aug_img
 
     def append_items(self, images, labels):
         """
