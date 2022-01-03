@@ -18,7 +18,7 @@ def base_path() -> str:
     """
     Returns the base bath where to log accuracies and tensorboard data.
     """
-    return './data/'
+    return '/data/cs.aau.dk/tungkvt/Mammoth/'
 
 
 def set_random_seed(seed: int) -> None:

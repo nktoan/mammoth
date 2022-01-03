@@ -25,7 +25,6 @@ def reservoir(num_seen_examples: int, buffer_size: int) -> int:
     else:
         return -1
 
-
 def ring(num_seen_examples: int, buffer_portion_size: int, task: int) -> int:
     return num_seen_examples % buffer_portion_size + task * buffer_portion_size
 
@@ -45,7 +44,7 @@ class Buffer:
             self.task_number = n_tasks
             self.buffer_portion_size = buffer_size // n_tasks
         self.attributes = ['examples', 'labels', 'logits', 'task_labels']
-        self.counter = {}
+        self.dict = {}
         self.balance_scores = torch.ones(self.buffer_size).to(self.device) * -float('inf')
 
     def init_tensors(self, examples: torch.Tensor, labels: torch.Tensor,
@@ -108,6 +107,7 @@ class Buffer:
 
     def update_all_scores(self):
         self.balance_scores = torch.tensor([self.dict[x.item()] for x in self.labels]).float().to(self.device)
+        self.balance_scores /= torch.sum(self.balance_scores)
 
     def get_data(self, size: int, transform: transforms=None) -> Tuple:
         """
