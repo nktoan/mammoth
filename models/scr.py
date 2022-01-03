@@ -7,6 +7,7 @@ from backbone.ResNet18 import SupConResNet
 import torchvision.transforms as transforms
 from datasets import get_dataset
 from torch.optim import SGD
+import gc
 
 
 def get_parser() -> ArgumentParser:
@@ -141,7 +142,7 @@ class SCR(ContinualModel):
             a_x.append(not_norm_x.to('cpu'))
             a_y.append(y.to('cpu'))
 
-            del x, not_norm_x, y, _y
+            del x, not_norm_x, y
             gc.collect()
             torch.cuda.empty_cache()
 
