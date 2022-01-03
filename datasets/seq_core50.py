@@ -180,7 +180,6 @@ class SequentialCore50(ContinualDataset):
     TRANSFORM = transforms.Compose(
             [
                 transforms.RandomCrop(128, padding=4),
-                transforms.RandomHorizontalFlip(p = 0.5),
                 transforms.ToTensor(),
                 transforms.Normalize(_mean,_std)
             ])
