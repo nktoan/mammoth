@@ -35,8 +35,12 @@ class ICarl(ContinualModel):
 
         # Instantiate buffers
         self.buffer = Buffer(self.args.buffer_size, self.device)
-        self.eye = torch.eye(self.dataset.N_CLASSES_PER_TASK *
-                             self.dataset.N_TASKS).to(self.device)
+
+        if type(self.dataset.N_CLASSES_PER_TASK) == list:
+            nc = int(np.sum(self.dataset.N_CLASSES_PER_TASK))
+        else:
+            nc = self.dataset.N_CLASSES_PER_TASK * self.dataset.N_TASKS
+        self.eye = torch.eye(nc).to(self.device)
 
         self.class_means = None
         self.old_net = None
@@ -86,9 +90,12 @@ class ICarl(ContinualModel):
         :param task_idx: the task index
         :return: the differentiable loss value
         """
-
-        pc = task_idx * self.dataset.N_CLASSES_PER_TASK
-        ac = (task_idx + 1) * self.dataset.N_CLASSES_PER_TASK
+        if type(self.dataset.N_CLASSES_PER_TASK) == list:
+            pc = int(np.sum(self.dataset.N_CLASSES_PER_TASK[:task_idx]))
+            ac = int(np.sum(self.dataset.N_CLASSES_PER_TASK[:task_idx+1]))
+        else:
+            pc = task_idx * self.dataset.N_CLASSES_PER_TASK
+            ac = (task_idx + 1) * self.dataset.N_CLASSES_PER_TASK
 
         outputs = self.net(inputs)[:, :ac]
         if task_idx == 0:

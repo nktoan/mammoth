@@ -25,9 +25,16 @@ def mask_classes(outputs: torch.Tensor, dataset: ContinualDataset, k: int) -> No
     :param dataset: the continual dataset
     :param k: the task index
     """
-    outputs[:, 0:k * dataset.N_CLASSES_PER_TASK] = -float('inf')
-    outputs[:, (k + 1) * dataset.N_CLASSES_PER_TASK:
-               dataset.N_TASKS * dataset.N_CLASSES_PER_TASK] = -float('inf')
+    if type(dataset.N_CLASSES_PER_TASK) == list:
+        THIS_TASK_START = int(np.sum(dataset.N_CLASSES_PER_TASK[:k]))
+        THIS_TASK_END = int(np.sum(dataset.N_CLASSES_PER_TASK[:k+1]))
+    else:
+        THIS_TASK_START = k * dataset.N_CLASSES_PER_TASK
+        THIS_TASK_END = (k + 1) * dataset.N_CLASSES_PER_TASK
+
+    outputs[:, :THIS_TASK_START] = -float('inf')
+    outputs[:, THIS_TASK_END:] = -float('inf')
+
 
 
 def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tuple[list, list]:

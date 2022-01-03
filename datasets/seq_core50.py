@@ -160,13 +160,12 @@ class MyCore50(Core50):
         not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
-            img2 = self.transform(img)
             img = self.transform(img)
 
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return img, img2, target, not_aug_img
+        return img, target, not_aug_img
 
 
 class SequentialCore50(ContinualDataset):

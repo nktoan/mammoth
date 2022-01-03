@@ -102,10 +102,18 @@ def store_masked_loaders(train_dataset: datasets, test_dataset: datasets,
     :param setting: continual learning setting
     :return: train and test loaders
     """
-    train_mask = np.logical_and(np.array(train_dataset.targets) >= setting.i,
-        np.array(train_dataset.targets) < setting.i + setting.N_CLASSES_PER_TASK)
-    test_mask = np.logical_and(np.array(test_dataset.targets) >= setting.i,
-        np.array(test_dataset.targets) < setting.i + setting.N_CLASSES_PER_TASK)
+    if type(setting.N_CLASSES_PER_TASK) == list:
+        FROM_CLASS = np.sum(setting.N_CLASSES_PER_TASK[:setting.i])
+        TO_CLASS = np.sum(setting.N_CLASSES_PER_TASK[:setting.i+1])
+    # any other dataset
+    else:
+        FROM_CLASS = setting.i * setting.N_CLASSES_PER_TASK
+        TO_CLASS = (setting.i + 1) * setting.N_CLASSES_PER_TASK
+
+    train_mask = np.logical_and(np.array(train_dataset.targets) >= FROM_CLASS,
+        np.array(train_dataset.targets) < TO_CLASS)
+    test_mask = np.logical_and(np.array(test_dataset.targets) >= FROM_CLASS,
+        np.array(test_dataset.targets) < TO_CLASS)
 
     train_dataset.data = train_dataset.data[train_mask]
     test_dataset.data = test_dataset.data[test_mask]
@@ -120,7 +128,7 @@ def store_masked_loaders(train_dataset: datasets, test_dataset: datasets,
     setting.test_loaders.append(test_loader)
     setting.train_loader = train_loader
 
-    setting.i += setting.N_CLASSES_PER_TASK
+    setting.i += 1
     return train_loader, test_loader
 
 
@@ -133,9 +141,17 @@ def get_previous_train_loader(train_dataset: datasets, batch_size: int,
     :param setting: the continual dataset at hand
     :return: a dataloader
     """
+    if type(setting.N_CLASSES_PER_TASK) == list:
+        FROM_CLASS = np.sum(setting.N_CLASSES_PER_TASK[:setting.i - 1])
+        TO_CLASS = np.sum(setting.N_CLASSES_PER_TASK[:setting.i])
+    # any other dataset
+    else:
+        FROM_CLASS = (setting.i - 1) * setting.N_CLASSES_PER_TASK
+        TO_CLASS = (setting.i) * setting.N_CLASSES_PER_TASK
+
     train_mask = np.logical_and(np.array(train_dataset.targets) >=
-        setting.i - setting.N_CLASSES_PER_TASK, np.array(train_dataset.targets)
-        < setting.i - setting.N_CLASSES_PER_TASK + setting.N_CLASSES_PER_TASK)
+        FROM_CLASS, np.array(train_dataset.targets)
+        < TO_CLASS)
 
     train_dataset.data = train_dataset.data[train_mask]
     train_dataset.targets = np.array(train_dataset.targets)[train_mask]
