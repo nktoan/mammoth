@@ -7,6 +7,7 @@ import torch
 import numpy as np
 from typing import Tuple
 from torchvision import transforms
+from collections import Counter
 
 
 def reservoir(num_seen_examples: int, buffer_size: int) -> int:
@@ -45,6 +46,7 @@ class Buffer:
             self.task_number = n_tasks
             self.buffer_portion_size = buffer_size // n_tasks
         self.attributes = ['examples', 'labels', 'logits', 'task_labels']
+        self.counter = Counter()
 
     def init_tensors(self, examples: torch.Tensor, labels: torch.Tensor,
                      logits: torch.Tensor, task_labels: torch.Tensor) -> None:
