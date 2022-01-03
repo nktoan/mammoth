@@ -18,6 +18,7 @@ from datasets.utils.continual_dataset import ContinualDataset, store_masked_load
 from datasets.utils.continual_dataset import get_previous_train_loader
 from datasets.transforms.denormalization import DeNormalize
 import sys
+from backbone.ResNet18 import resnet18
 
 class Core50(Dataset):
     TRAIN_LENGTH = 119894
@@ -236,8 +237,7 @@ class SequentialCore50(ContinualDataset):
 
     @staticmethod
     def get_backbone():
-        pass
-        # return ResNet18(np.sum(SequentialCore50.N_CLASSES_PER_TASK))
+        return resnet18(np.sum(SequentialCore50.N_CLASSES_PER_TASK))
 
     @staticmethod
     def get_loss():
