@@ -1,8 +1,7 @@
-# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide Abati, Simone Calderara.
+# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
-
 from copy import deepcopy
 import torch
 import torch.nn.functional as F
@@ -11,7 +10,6 @@ from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
 import numpy as np
-
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual Learning via iCaRL.')
@@ -27,7 +25,7 @@ def get_parser() -> ArgumentParser:
 
 class ICarl(ContinualModel):
     NAME = 'icarl'
-    COMPATIBILITY = ['class-il', 'task-il']
+    COMPATIBILITY = ['class-il', 'domain-il', 'task-il']
 
     def __init__(self, backbone, loss, args, transform):
         super(ICarl, self).__init__(backbone, loss, args, transform)
@@ -58,7 +56,7 @@ class ICarl(ContinualModel):
         return -pred
 
     def observe(self, inputs, labels, not_aug_inputs, logits=None):
-
+        labels = labels.long()
         if not hasattr(self, 'classes_so_far'):
             self.register_buffer('classes_so_far', labels.unique().to('cpu'))
         else:
@@ -115,23 +113,33 @@ class ICarl(ContinualModel):
         return loss
 
     def begin_task(self, dataset):
-        denorm = dataset.get_denormalization_transform()
-        if denorm is None:
-            denorm = lambda x: x
+        denorm = (lambda x: x) if dataset.get_denormalization_transform()\
+                                is None else dataset.get_denormalization_transform()
         if self.current_task > 0:
-            dataset.train_loader.dataset.targets = np.concatenate(
-                [dataset.train_loader.dataset.targets,
-                 self.buffer.labels.cpu().numpy()[:self.buffer.num_seen_examples]])
-            if type(dataset.train_loader.dataset.data) == torch.Tensor:
-                dataset.train_loader.dataset.data = torch.cat(
-                    [dataset.train_loader.dataset.data, torch.stack([denorm(
-                        self.buffer.examples[i].type(torch.uint8).cpu())
-                        for i in range(self.buffer.num_seen_examples)]).squeeze(1)])
+            if self.args.dataset != 'seq-core50':
+                dataset.train_loader.dataset.targets = np.concatenate(
+                    [dataset.train_loader.dataset.targets,
+                     self.buffer.labels.cpu().numpy()[:self.buffer.num_seen_examples]])
+                if type(dataset.train_loader.dataset.data) == torch.Tensor:
+                    dataset.train_loader.dataset.data = torch.cat(
+                        [dataset.train_loader.dataset.data,
+                         torch.stack([denorm(self.buffer.examples[i].type(torch.uint8).cpu())
+                                      for i in range(self.buffer.num_seen_examples)]).squeeze(1)])
+                else:
+                    dataset.train_loader.dataset.data = np.concatenate(
+                        [dataset.train_loader.dataset.data,
+                         torch.stack([(denorm(self.buffer.examples[i] * 255).type(torch.uint8).cpu())
+                                      for i in range(self.buffer.num_seen_examples)]).numpy().swapaxes(1, 3)])
             else:
-                dataset.train_loader.dataset.data = np.concatenate(
-                    [dataset.train_loader.dataset.data, torch.stack([(denorm(
-                        self.buffer.examples[i] * 255).type(torch.uint8).cpu())
-                        for i in range(self.buffer.num_seen_examples)]).numpy().swapaxes(1, 3)])
+
+                # print(torch.stack([(denorm(self.buffer.examples[i]).cpu())
+                        # for i in range(self.buffer.num_seen_examples)]).numpy().shape)
+                dataset.train_loader.dataset.add_more_data(
+                    more_targets=self.buffer.labels.cpu().numpy()[:self.buffer.num_seen_examples],
+                    more_data=torch.stack([(denorm(self.buffer.examples[i]).cpu())
+                        for i in range(self.buffer.num_seen_examples)]).numpy().swapaxes(1, 3)
+                )
+
 
     def end_task(self, dataset) -> None:
         self.old_net = deepcopy(self.net.eval())
@@ -187,7 +195,7 @@ class ICarl(ContinualModel):
                 )
 
         # 2) Then, fill with current tasks
-        loader = dataset.not_aug_dataloader(self.args.batch_size)
+        loader = dataset.not_aug_dataloader(self.args, self.args.batch_size)
 
         # 2.1 Extract all features
         a_x, a_y, a_f, a_l = [], [], [], []
