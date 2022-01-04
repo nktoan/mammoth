@@ -17,6 +17,7 @@ from datasets.mnist_360 import MNIST360
 from datasets.utils.continual_dataset import ContinualDataset
 from argparse import Namespace
 from datasets.seq_core50 import SequentialCore50
+from datasets.seq_core50_pair import SequentialCore50P
 
 NAMES = {
     PermutedMNIST.NAME: PermutedMNIST,
@@ -29,6 +30,7 @@ NAMES = {
     SequentialCIFAR100_20.NAME : SequentialCIFAR100_20,
     RotatedMNIST.NAME: RotatedMNIST,
     SequentialTinyImagenet.NAME: SequentialTinyImagenet,
+    SequentialCore50P.NAME : SequentialCore50P,
     SequentialCore50.NAME : SequentialCore50,
     MNIST360.NAME: MNIST360
 }
